@@ -1,0 +1,21 @@
+{
+  "name": "amegatron/php-dependency-analyzer",
+  "description": "Library and tool for analyzing dependencies in your project",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Aleksandr Egorov",
+      "email": "amego2006@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "PhpDep\\": "src/"
+    }
+  },
+  "require": {
+    "nikic/php-parser": "^v4.13.0",
+    "phpdocumentor/reflection": "^5.1"
+  }
+}
