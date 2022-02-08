@@ -4,23 +4,25 @@ declare(strict_types=1);
 
 namespace PhpDep\Dependencies;
 
-use PhpDep\Dto\ClassReferencesInfo;
-
 class ClassHierarchyAggregator
 {
-    /**
-     *
-     *
-     * @param array $classHierarchy
-     * @param array $config
-     *
-     * @return array
-     */
-    public function aggregateHierarchy(array $classHierarchy, array $config): array
+    public function aggregateHierarchy(array $classHierarchy, array $config, bool $removeMissing = true): array
     {
+        print("Building internal hierarchy..." . PHP_EOL);
         $internalHierarchy = $this->buildInternalHierarchy($classHierarchy);
+        print("Aggregating..." . PHP_EOL);
+        $aggregatedHierarchy = $this->aggregateHierarchyInternal($internalHierarchy, $config, $config);
+        print("Collapsing..." . PHP_EOL);
+        $hierarchy = $this->collapseAggregatedHierarchy($aggregatedHierarchy);
+        print("Removing loops..." . PHP_EOL);
+        $hierarchy = $this->removeLoops($hierarchy);
 
-        return $this->aggregateHierarchyInternal($internalHierarchy, $config, $config);
+        if ($removeMissing) {
+            print("Removing missing elements..." . PHP_EOL);
+            $hierarchy = $this->removeMissingElements($hierarchy);
+        }
+
+        return $hierarchy;
     }
 
     protected function buildInternalHierarchy(array $classHierarchy): array
@@ -39,7 +41,7 @@ class ClassHierarchyAggregator
         return $hierarchy;
     }
 
-    private function setArrayNamespaced(array &$array, string $key, mixed $value, string $separator = '\\'): void
+    protected function setArrayNamespaced(array &$array, string $key, mixed $value, string $separator = '\\'): void
     {
         $keys = explode($separator, $key);
 
@@ -54,6 +56,61 @@ class ClassHierarchyAggregator
         }
 
         $array[array_pop($keys)] = $value;
+    }
+
+    protected function removeLoops(array $hierarchy): array
+    {
+        $result = [];
+
+        foreach ($hierarchy as $namespace => $dependencies) {
+            $loopIndex = array_search($namespace, $dependencies);
+
+            if ($loopIndex !== false) {
+                unset($dependencies[$loopIndex]);
+            }
+
+            $result[$namespace] = $dependencies;
+        }
+
+        return $result;
+    }
+
+    protected function removeMissingElements(array $hierarchy): array
+    {
+        $result = [];
+
+        foreach ($hierarchy as $name => $dependencies) {
+            $newDependencies = [];
+
+            foreach ($dependencies as $dependency) {
+                if (isset($hierarchy[$dependency])) {
+                    $newDependencies[] = $dependency;
+                }
+            }
+
+            $result[$name] = $newDependencies;
+        }
+
+        return $result;
+    }
+
+    protected function collapseAggregatedHierarchy(array $hierarchy): array
+    {
+        $result = [];
+
+        foreach ($hierarchy as $nsPart => $subHierarchy) {
+            if (isset($subHierarchy['type'])) {
+                $result[$nsPart] = $subHierarchy['dependencies'];
+            } else {
+                $subResult = $this->collapseAggregatedHierarchy($subHierarchy);
+
+                foreach ($subResult as $subNsPart => $item) {
+                    $result[$nsPart . '\\' . $subNsPart] = $item;
+                }
+            }
+        }
+
+        return $result;
     }
 
     protected function aggregateHierarchyInternal(array $hierarchy, array $config, ?array $subConfig): array
