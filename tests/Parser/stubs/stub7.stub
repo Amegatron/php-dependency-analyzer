@@ -1,0 +1,6 @@
+<?php
+namespace Test\Inheritance;
+use App\Base\AbstractController as BaseControllerAlias;
+use App\Contracts\LoggableInterface as LoggableAlias;
+
+class UserController extends BaseControllerAlias implements LoggableAlias {}

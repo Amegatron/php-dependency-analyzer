@@ -1,0 +1,5 @@
+<?php
+namespace Test\Exceptions;
+use App\Exceptions\HttpException as HttpErrorAlias;
+
+function run() { try {} catch (HttpErrorAlias $e) {} }

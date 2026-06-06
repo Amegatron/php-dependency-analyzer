@@ -24,12 +24,7 @@ class DocBlockReferenceCollector
         $references = [];
 
         foreach ($docBlock->getTags() as $tag) {
-            if (
-                $tag instanceof Tags\Var_
-                || $tag instanceof Tags\Throws
-                || $tag instanceof Tags\Return_
-                || $tag instanceof Tags\Param
-            ) {
+            if ($tag instanceof Tags\TagWithType) {
                 $references = array_merge($references, $this->getReferencesFromType($tag->getType()));
             }
         }

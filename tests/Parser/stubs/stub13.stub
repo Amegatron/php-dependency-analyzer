@@ -1,0 +1,28 @@
+<?php
+namespace Test\DocBlocks;
+
+use App\Services\UserService as UserServiceAlias;
+use App\Models\Order as OrderAlias;
+
+class DocBlockTarget {
+    /**
+     * @var array<string, OrderAlias>                     Generic array with inner class reference
+     * @property-read \App\Config\DatabaseConfig $db      Virtual property via docblock (FQN)
+     */
+    public $data;
+
+    /**
+     * @var \App\Models\User[]
+    public $anotherData;
+
+    /**
+     * @return UserServiceAlias
+     */
+    public function process() {
+        /** @var ?\App\Models\Session $currentSession */
+        $currentSession = null;
+
+        /** @var Local\CacheManager $cache */
+        $cache = new \stdClass();
+    }
+}

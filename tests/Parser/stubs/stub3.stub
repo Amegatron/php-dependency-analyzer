@@ -1,0 +1,5 @@
+<?php
+namespace Test\Props;
+use App\Models\OrderRecord as OrderAlias;
+
+class Holder { public OrderAlias $order; }

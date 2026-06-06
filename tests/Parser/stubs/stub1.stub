@@ -1,0 +1,5 @@
+<?php
+namespace Test\Params;
+use App\Services\UserService as UserServiceAlias;
+
+function process(UserServiceAlias $input) {}

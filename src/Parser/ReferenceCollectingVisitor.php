@@ -9,6 +9,9 @@ use PhpParser\Node\Expr;
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\Types\Context;
 
+/**
+ * A visitor for php-parser which collects all class-references from code
+ */
 class ReferenceCollectingVisitor implements ReferenceCollectingVisitorInterface
 {
     /** @var string[] */
@@ -27,9 +30,7 @@ class ReferenceCollectingVisitor implements ReferenceCollectingVisitorInterface
     /** @var array<string> */
     protected array $comments;
 
-    public function __construct(protected DocBlockReferenceCollector $docBlockReferenceCollector)
-    {
-    }
+    protected DocBlockReferenceCollector $docBlockReferenceCollector;
 
     public function beforeTraverse(array $nodes)
     {
@@ -45,7 +46,8 @@ class ReferenceCollectingVisitor implements ReferenceCollectingVisitorInterface
     public function enterNode(Node $node)
     {
         if ($node instanceof Node\Name) {
-            $reference = implode("\\", $node->parts);
+            $parts = $node->getParts();
+            $reference = implode("\\", $parts);
             $parentNode = $this->nodeStack[count($this->nodeStack) - 1];
 
             if ($parentNode instanceof Node\NullableType || $parentNode instanceof Node\UnionType) {
@@ -56,7 +58,6 @@ class ReferenceCollectingVisitor implements ReferenceCollectingVisitorInterface
                 if ($parentNode->alias) {
                     $alias = $parentNode->alias->name;
                 } else {
-                    $parts = explode('\\', $reference);
                     $alias = $parts[count($parts) - 1];
                 }
 
@@ -73,6 +74,8 @@ class ReferenceCollectingVisitor implements ReferenceCollectingVisitorInterface
                 || $parentNode instanceof Stmt\Class_
                 || $parentNode instanceof Expr\Instanceof_
                 || $parentNode instanceof Stmt\TraitUse
+                || $parentNode instanceof Stmt\Property
+                || $parentNode instanceof Node\Attribute
             ) {
                 if (!in_array($reference, ['parent', 'static', 'self'])) {
                     if ($node instanceof Node\Name\FullyQualified) {
@@ -83,25 +86,20 @@ class ReferenceCollectingVisitor implements ReferenceCollectingVisitorInterface
                 }
             }
         } elseif (
-            $node instanceof Stmt\Property
-            || $node instanceof Stmt\ClassMethod
-            || $node instanceof Expr\Variable
-            || $node instanceof Expr\MethodCall
-            || $node instanceof Stmt\Expression
-        ) {
-            $comment = $node->getDocComment();
-
-            if ($comment) {
-                $this->comments[] = $comment->getText();
-            }
-        } elseif (
             $node instanceof Stmt\Class_
             || $node instanceof Stmt\Interface_
             || $node instanceof Stmt\Trait_
+            || $node instanceof Stmt\Enum_
         ) {
             if (!isset($this->className)) {
                 $this->className = $node->name->name;
             }
+        }
+
+        $comment = $node->getDocComment();
+
+        if ($comment) {
+            $this->comments[] = $comment->getText();
         }
 
         $this->nodeStack[] = $node;
@@ -125,38 +123,7 @@ class ReferenceCollectingVisitor implements ReferenceCollectingVisitorInterface
     {
         $this->parseDocReferences($this->comments);
 
-        $referencesExploded = array_map(
-            static function (string $item): array {
-                return explode("\\", $item);
-            },
-            array_keys($this->references),
-        );
-
-        $references = [];
-
-        foreach ($referencesExploded as $refParts) {
-            // If this is already FQN
-            if (empty($refParts[0])) {
-                $references[] = implode('\\', array_slice($refParts, 1));
-
-                continue;
-            }
-
-            // Otherwise, prepend either with namespace or according import
-            if (isset($this->uses[$refParts[0]])) {
-                $ref = $this->uses[$refParts[0]];
-
-                if (count($refParts) > 1) {
-                    $ref .= '\\' . implode("\\", array_slice($refParts, 1));
-                }
-
-                $references[] = $ref;
-            } else {
-                $references[] = $this->namespace . '\\' . implode("\\", $refParts);
-            }
-        }
-
-        $result = array_unique($references);
+        $result = array_unique($this->resolveReferences());
         sort($result);
 
         return $result;
@@ -181,5 +148,43 @@ class ReferenceCollectingVisitor implements ReferenceCollectingVisitorInterface
                 $this->references[$reference] = true;
             }
         }
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function resolveReferences(): array {
+        $references = [];
+
+        $referencesExploded = array_map(
+            static function (string $item): array {
+                return explode("\\", $item);
+            },
+            array_keys($this->references),
+        );
+
+        foreach ($referencesExploded as $refParts) {
+            // If this is already FQN
+            if (empty($refParts[0])) {
+                $references[] = implode('\\', array_slice($refParts, 1));
+
+                continue;
+            }
+
+            // Otherwise, prepend either with namespace or according import
+            if (isset($this->uses[$refParts[0]])) {
+                $ref = $this->uses[$refParts[0]];
+
+                if (count($refParts) > 1) {
+                    $ref .= '\\' . implode("\\", array_slice($refParts, 1));
+                }
+
+                $references[] = $ref;
+            } else {
+                $references[] = $this->namespace . '\\' . implode("\\", $refParts);
+            }
+        }
+
+        return $references;
     }
 }

@@ -1,0 +1,5 @@
+<?php
+namespace Test\Instantiation;
+use App\Factories\ProductFactory as FactoryAlias;
+
+function create() { new FactoryAlias(); }

@@ -1,0 +1,6 @@
+<?php
+namespace Test\Attributes;
+use App\Attributes\Route as RouteAttrAlias;
+
+#[RouteAttrAlias('/api')]
+class ApiController {}

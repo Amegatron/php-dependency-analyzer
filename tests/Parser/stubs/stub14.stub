@@ -1,0 +1,39 @@
+<?php
+namespace Test\FqnUsage;
+
+class FqnResolver {
+    // Parameter with FQN
+    public function process(\App\Services\UserService $service): void {}
+
+    // Return type with FQN
+    public function getRepository(): \App\Contracts\RepositoryInterface {}
+
+    // Typed property with FQN
+    public \App\Models\OrderRecord $order;
+
+    // Instantiation with FQN
+    public function create() { new \App\Factories\ProductFactory(); }
+
+    // Static call with FQN
+    public function clear() { \App\Helpers\CacheHelper::flush(); }
+
+    // Class const fetch with FQN
+    public function getName(): string { return \App\Entities\Category::class; }
+
+    // Catch with FQN
+    public function run() { try {} catch (\App\Exceptions\HttpException $e) {} }
+
+    // Instanceof with FQN
+    public function check($obj): bool { return $obj instanceof \App\Entities\Customer; }
+
+    // Inheritance/Implementation with FQN
+}
+
+class ExtendedClass extends \App\Base\AbstractController implements \App\Contracts\LoggableInterface {}
+
+// Trait use with FQN
+class WithTrait { use \App\Traits\AuthTrait; }
+
+// Attribute with FQN
+#[\App\Attributes\Route('/api')]
+class ApiController {}

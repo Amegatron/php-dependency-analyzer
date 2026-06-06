@@ -1,0 +1,8 @@
+<?php
+namespace Test\UnionNullable;
+use App\Models\User as UserAlias;
+use App\Exceptions\ValidationError as ErrorAlias;
+
+class Handler {
+    public function run(?UserAlias $u, UserAlias|ErrorAlias $v): ?UserAlias {}
+}

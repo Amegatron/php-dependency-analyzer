@@ -1,0 +1,5 @@
+<?php
+namespace Test\Traits;
+use App\Traits\AuthTrait as AuthAlias;
+
+class Service { use AuthAlias; }

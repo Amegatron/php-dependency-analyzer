@@ -1,0 +1,5 @@
+<?php
+namespace Test\ClassConst;
+use App\Entities\Category as CategoryAlias;
+
+function getName() { return CategoryAlias::class; }

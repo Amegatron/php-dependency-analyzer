@@ -1,0 +1,6 @@
+<?php
+namespace Test\Traits;
+
+use App\Traits\NotUsedImport;
+
+class Service { }

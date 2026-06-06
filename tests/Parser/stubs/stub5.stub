@@ -1,0 +1,5 @@
+<?php
+namespace Test\StaticCalls;
+use App\Helpers\CacheHelper as CacheAlias;
+
+function clear() { CacheAlias::flush(); }

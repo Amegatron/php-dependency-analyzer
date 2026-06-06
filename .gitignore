@@ -2,3 +2,4 @@
 vendor/
 src/test.php
 storage/
+.phpunit.result.cache
