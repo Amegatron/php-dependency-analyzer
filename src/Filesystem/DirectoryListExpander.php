@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace PhpDep\Filesystem;
 
+use Exception;
+
+/**
+ * Draft. Not used yet.
+ */
 class DirectoryListExpander
 {
     /**
@@ -11,11 +16,8 @@ class DirectoryListExpander
      */
     public function expandDirectoryPattern(string $directoryPattern): array
     {
-        // TODO: implement
-        throw new \Exception("Not implemented yet");
-
-        $result = [];
-
+        throw new Exception("Not implemented");
+        
         return $this->expandInternal($directoryPattern);
     }
 
@@ -75,7 +77,6 @@ class DirectoryListExpander
 
     protected function _expandDirectoryPatternInternal(string $directoryPattern): array
     {
-//        $result = [];
         $currentStack = [];
         $resultStack = [];
         $pathSegment = '';

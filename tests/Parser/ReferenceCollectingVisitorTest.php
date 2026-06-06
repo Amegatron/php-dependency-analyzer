@@ -8,12 +8,15 @@ use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \PhpDep\Parser\ReferenceCollectingVisitor
+ */
 class ReferenceCollectingVisitorTest extends TestCase
 {
     /**
-     * @dataProvider testData
+     * @dataProvider referenceTestData
      */
-    public function testReferenceParsing(string $fileName, array $expectedReferences): void {
+    public function testReferenceParsing(string $fileName, array $expectedReferences) {
         $parser = (new ParserFactory)->createForNewestSupportedVersion();
         $ast = $parser->parse(file_get_contents($fileName));
 
@@ -26,7 +29,7 @@ class ReferenceCollectingVisitorTest extends TestCase
         $this->assertSame($expectedReferences, $references);
     }
 
-    public function testData(): array {
+    protected function referenceTestData(): array {
         return [
             [__DIR__ . '/stubs/stub1.stub', ['App\Services\UserService']],
             [__DIR__ . '/stubs/stub2.stub', ['App\Contracts\RepositoryInterface']],

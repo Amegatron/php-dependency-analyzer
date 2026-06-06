@@ -6,6 +6,7 @@ namespace PhpDep\Filesystem;
 
 use Closure;
 use FilesystemIterator;
+use Generator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
@@ -13,45 +14,42 @@ class SourcecodeFinder
 {
     /**
      * @param array<string> $rootDirectories
-     *
-     * @return array<string>
+     * @param Closure|null $shouldVisitCallback
+     * @return Generator<int, string, mixed, void>
      */
     public function getFiles(
         array $rootDirectories,
         ?Closure $shouldVisitCallback = null,
-    ): array {
+    ): Generator {
         if (!$shouldVisitCallback) {
             $shouldVisitCallback = $this->getExtensionBasedVisitorFilter(['php']);
         }
 
         $rootDirectories = $this->expandDirectories($rootDirectories);
 
-        $files = [];
-
         foreach ($rootDirectories as $directory) {
-            $files = array_merge($files, $this->getFilesFromDirectory($directory, $shouldVisitCallback));
+            yield from $this->getFilesFromDirectory($directory, $shouldVisitCallback);
         }
-
-        return $files;
     }
 
+    /**
+     * @param string $directory
+     * @param Closure $shouldVisitCallback
+     * @return Generator<int, string, mixed, void>
+     */
     protected function getFilesFromDirectory(
         string $directory,
         Closure $shouldVisitCallback,
-    ): array {
+    ): Generator {
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($directory, FilesystemIterator::CURRENT_AS_PATHNAME)
         );
 
-        $files = [];
-
         foreach ($iterator as $filename) {
             if ($shouldVisitCallback($filename)) {
-                $files[] = $filename;
+                yield $filename;
             }
         }
-
-        return $files;
     }
 
     /**
